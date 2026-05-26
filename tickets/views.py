@@ -2,14 +2,30 @@ from django.shortcuts import render
 from rest_framework.viewsets import ModelViewSet
 from users.models import User
 from .models import Ticket
-from .serializers import TicketSerializer
 from .permissions import TicketPermission
+from .serializers import (
+    TicketSerializer,
+    TicketCreateSerializer,
+    TicketUpdateSerializer,
+)
 
 
 class TicketViewSet(ModelViewSet):
-    serializer_class = TicketSerializer
+    """Представление для обработки GET, POST, PUT и PATCH запросов"""
 
     permission_classes = [TicketPermission]
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return TicketCreateSerializer
+
+        if self.action in (
+            'update',
+            'partial_update',
+        ):
+            return TicketUpdateSerializer
+
+        return TicketSerializer
 
     def get_queryset(self):
         user = self.request.user

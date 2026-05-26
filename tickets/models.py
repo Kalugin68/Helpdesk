@@ -10,6 +10,21 @@ class Ticket(models.Model):
         DONE = 'DONE', 'Выполнена'
         REJECTED = 'REJECTED', 'Отклонена'
 
+    ALLOWED_TRANSITIONS = {
+        Status.NEW: {
+            Status.IN_PROGRESS,
+            Status.REJECTED,
+        },
+
+        Status.IN_PROGRESS: {
+            Status.DONE,
+            Status.REJECTED,
+        },
+
+        Status.DONE: set(),
+        Status.REJECTED: set(),
+    }
+
     title = models.CharField(max_length=255)
     description = models.TextField()
     status = models.CharField(
