@@ -57,30 +57,42 @@ class TicketUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
+        current_status = self.instance.status
+        new_status = attrs.get('status', current_status)
+        assigned_to = attrs.get('assigned_to', self.instance.assigned_to)
+
+        # Проверка на переходы заявки из одного состояния в другое
+        if new_status != current_status:
+            allowed = Ticket.ALLOWED_TRANSITIONS[current_status]
+
+            if new_status not in allowed:
+                raise serializers.ValidationError(
+                    f'Нельзя перевести заявку из '
+                    f'{current_status} в {new_status}'
+                )
 
         # Запрет на изменение закрытой заявки
-        if (self.instance.status == Ticket.Status.DONE):
+        if self.instance.status == Ticket.Status.DONE:
             raise serializers.ValidationError(
                 'Закрытая заявка не может быть изменена.'
             )
 
-        # Проверка закрытия заявки
-        status = attrs.get(
-            'status',
-            self.instance.status
-        )
-
-        assigned_to = attrs.get(
-            'assigned_to',
-            self.instance.assigned_to
-        )
-
+        # бизнес-правило: нельзя закрыть без исполнителя
         if (
-            status == Ticket.Status.DONE
+            new_status == Ticket.Status.DONE
             and assigned_to is None
         ):
             raise serializers.ValidationError(
                 'Нельзя закрыть заявку без исполнителя.'
+            )
+
+        # бизнес-правило: нельзя в IN_PROGRESS без исполнителя
+        if (
+                new_status == Ticket.Status.IN_PROGRESS
+                and assigned_to is None
+        ):
+            raise serializers.ValidationError(
+                "Для начала работы нужно назначить исполнителя."
             )
 
         return attrs
