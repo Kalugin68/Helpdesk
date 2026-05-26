@@ -3,10 +3,13 @@ from rest_framework.viewsets import ModelViewSet
 from users.models import User
 from .models import Ticket
 from .serializers import TicketSerializer
+from .permissions import TicketPermission
 
 
 class TicketViewSet(ModelViewSet):
     serializer_class = TicketSerializer
+
+    permission_classes = [TicketPermission]
 
     def get_queryset(self):
         user = self.request.user
