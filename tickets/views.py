@@ -11,9 +11,22 @@ from .serializers import (
 
 
 class TicketViewSet(ModelViewSet):
-    """Представление для обработки GET, POST, PUT и PATCH запросов"""
+    """Представление для обработки GET, POST, PUT и ,PATCH запросов"""
 
     permission_classes = [TicketPermission]
+
+    filterset_fields = (
+        'status',
+        'assigned_to',
+    )
+    search_fields = (
+        'title',
+        'description',
+    )
+    ordering_fields = (
+        'created_at',
+        'updated_at',
+    )
 
     def get_serializer_class(self):
         if self.action == 'create':
